@@ -1,0 +1,24 @@
+
+spring:
+  datasource:
+    url: jdbc:h2:mem:cnabparser-test
+    driver-class-name: org.h2.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+---
+spring:
+  config:
+    activate:
+      on-profile:
+        - test-it
+  datasource:
+    url: jdbc:postgresql://localhost:5432/cnabparser-test
+    username: cnabparser
+    password: mysecretpassword
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: create-drop
