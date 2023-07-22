@@ -98,7 +98,7 @@ public class CnabParserServiceImpl implements CnabParserService {
 
         Optional<BigDecimal> amount = convertAmount(cnab.getAmount(), type);
         if (amount.isEmpty()) {
-            cnab.appendErrorDescription("Data da transação inválida");
+            cnab.appendErrorDescription("Valor da transação inválido");
             isError = true;
         }
 

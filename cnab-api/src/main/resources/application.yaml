@@ -31,14 +31,7 @@ spring:
           jwk-set-uri: http://localhost:8080/realms/desafio/protocol/openid-connect/certs
 server:
   port: 8081
-logging:
-  level:
-    org:
-      springframework:
-        security: DEBUG
 cnabparser:
-  filestorage:
-    location: "./"
   topics:
     cnabprocessing-topic: T_CNAB_FILE
 
@@ -57,3 +50,27 @@ spring:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: update
+  kafka:
+    producer:
+      bootstrap-servers:
+        - kafka:9092
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    consumer:
+      bootstrap-servers:
+        - kafka:9092
+      group-id: cnabparser-api
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    admin:
+      auto-create: true
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://keycloak:8080/realms/desafio
+          jwk-set-uri: http://keycloak:8080/realms/desafio/protocol/openid-connect/certs
+cnabparser:
+  topics:
+    cnabprocessing-topic: T_CNAB_FILE
