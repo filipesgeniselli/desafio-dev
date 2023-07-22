@@ -3,7 +3,7 @@ FROM amazoncorretto:17-alpine-jdk AS builder
 COPY .. /build
 WORKDIR /build
 
-RUN ./mvnw clean install
+RUN ./mvnw clean install -DskipTests
 RUN mkdir -p target/dependency && (cd target/dependency; jar -xf ../*.jar)
 
 FROM amazoncorretto:17-alpine
