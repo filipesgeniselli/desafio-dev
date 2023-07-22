@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/cnabparser
+    url: jdbc:postgresql://localhost:5432/api
     username: api
-    password: secret
+    password: mysecretpassword
     driver-class-name: org.postgresql.Driver
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
@@ -23,7 +23,19 @@ spring:
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
     admin:
       auto-create: true
-
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080/realms/desafio
+          jwk-set-uri: http://localhost:8080/realms/desafio/protocol/openid-connect/certs
+server:
+  port: 8081
+logging:
+  level:
+    org:
+      springframework:
+        security: DEBUG
 cnabparser:
   filestorage:
     location: "./"

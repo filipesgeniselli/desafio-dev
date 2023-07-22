@@ -2,6 +2,7 @@ package com.filipegeniselli.desafiodev.transactions.data;
 
 import com.filipegeniselli.desafiodev.exception.InvalidCnabException;
 import jakarta.persistence.*;
+import org.springframework.util.StringUtils;
 
 import java.util.Objects;
 
@@ -139,6 +140,19 @@ public class Cnab {
 
     public void setErrorDescription(String errorDescription) {
         this.errorDescription = errorDescription;
+    }
+    public void appendErrorDescription(String errorDescription) {
+        StringBuilder sb = new StringBuilder();
+        if (StringUtils.hasText(this.errorDescription)) {
+            sb.append(this.errorDescription);
+        }
+
+        if (!sb.isEmpty()) {
+            sb.append(" - ");
+        }
+
+        sb.append(errorDescription);
+        this.setErrorDescription(sb.toString());
     }
 
     @Override

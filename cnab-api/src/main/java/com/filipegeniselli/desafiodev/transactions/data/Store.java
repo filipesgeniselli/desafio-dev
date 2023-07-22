@@ -2,8 +2,8 @@ package com.filipegeniselli.desafiodev.transactions.data;
 
 import jakarta.persistence.*;
 
+import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 
 @Entity
 @Table
@@ -15,7 +15,7 @@ public class Store {
     private String storeName;
 
     @OneToMany(mappedBy = "store")
-    private Set<Transaction> transactions;
+    private List<Transaction> transactions;
 
     public Integer getId() {
         return id;
@@ -41,11 +41,11 @@ public class Store {
         this.storeName = storeName;
     }
 
-    public Set<Transaction> getTransactions() {
+    public List<Transaction> getTransactions() {
         return transactions;
     }
 
-    public void setTransactions(Set<Transaction> transactions) {
+    public void setTransactions(List<Transaction> transactions) {
         this.transactions = transactions;
     }
 
@@ -66,7 +66,7 @@ public class Store {
         private Integer id;
         private String ownerName;
         private String storeName;
-        private Set<Transaction> transactions;
+        private List<Transaction> transactions;
 
         private StoreBuilder() {
         }
@@ -90,7 +90,7 @@ public class Store {
             return this;
         }
 
-        public StoreBuilder transactions(Set<Transaction> transactions) {
+        public StoreBuilder transactions(List<Transaction> transactions) {
             this.transactions = transactions;
             return this;
         }

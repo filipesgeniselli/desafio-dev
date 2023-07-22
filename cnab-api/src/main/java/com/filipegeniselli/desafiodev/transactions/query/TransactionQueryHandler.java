@@ -3,12 +3,12 @@ package com.filipegeniselli.desafiodev.transactions.query;
 import com.filipegeniselli.desafiodev.exception.NotFoundException;
 import com.filipegeniselli.desafiodev.transactions.CnabDto;
 import com.filipegeniselli.desafiodev.transactions.CnabProcessingDto;
-import com.filipegeniselli.desafiodev.transactions.data.Cnab;
-import com.filipegeniselli.desafiodev.transactions.data.CnabProcessStatus;
-import com.filipegeniselli.desafiodev.transactions.data.CnabProcessStatusRepository;
-import com.filipegeniselli.desafiodev.transactions.data.CnabRepository;
+import com.filipegeniselli.desafiodev.transactions.StoreDto;
+import com.filipegeniselli.desafiodev.transactions.TransactionDto;
+import com.filipegeniselli.desafiodev.transactions.data.*;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -16,11 +16,25 @@ public class TransactionQueryHandler implements TransactionQueryService {
 
     private final CnabProcessStatusRepository cnabProcessStatusRepository;
     private final CnabRepository cnabRepository;
+    private final TransactionRepository transactionRepository;
+    private final StoreRepository storeRepository;
 
     public TransactionQueryHandler(CnabProcessStatusRepository cnabProcessStatusRepository,
-                                   CnabRepository cnabRepository) {
+                                   CnabRepository cnabRepository,
+                                   TransactionRepository transactionRepository,
+                                   StoreRepository storeRepository) {
         this.cnabProcessStatusRepository = cnabProcessStatusRepository;
         this.cnabRepository = cnabRepository;
+        this.transactionRepository = transactionRepository;
+        this.storeRepository = storeRepository;
+    }
+
+    @Override
+    public List<CnabProcessingDto> handle(GetAllCnabProcessStatus query) {
+        return cnabProcessStatusRepository.findAll()
+                .stream()
+                .map(this::convertEntityToDto)
+                .toList();
     }
 
     @Override
@@ -35,6 +49,22 @@ public class TransactionQueryHandler implements TransactionQueryService {
     @Override
     public List<CnabDto> handle(GetCnabByProcessId query) {
         return cnabRepository.findByCnabProcessStatus_Id(query.id())
+                .stream()
+                .map(this::convertEntityToDto)
+                .toList();
+    }
+
+    @Override
+    public List<StoreDto> handle(GetStores query) {
+        return storeRepository.findAll()
+                .stream()
+                .map(this::convertEntityToDto)
+                .toList();
+    }
+
+    @Override
+    public List<TransactionDto> handle(GetTransactionsByStoreId query) {
+        return transactionRepository.findByStore_Id(query.storeId())
                 .stream()
                 .map(this::convertEntityToDto)
                 .toList();
@@ -62,4 +92,22 @@ public class TransactionQueryHandler implements TransactionQueryService {
                 entity.getErrorDescription());
     }
 
+    private StoreDto convertEntityToDto(Store entity) {
+        return new StoreDto(entity.getId(),
+                entity.getStoreName(),
+                entity.getOwnerName(),
+                entity.getTransactions()
+                        .stream()
+                        .map(x -> x.getAmount())
+                        .reduce(BigDecimal.ZERO, BigDecimal::add));
+    }
+
+    private TransactionDto convertEntityToDto(Transaction entity) {
+        return new TransactionDto(entity.getId(),
+                entity.getType(),
+                entity.getAmount(),
+                entity.getTransactionTime(),
+                entity.getCpf(),
+                entity.getCard());
+    }
 }

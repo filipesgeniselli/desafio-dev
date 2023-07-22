@@ -2,7 +2,6 @@ package com.filipegeniselli.desafiodev.transactions.command;
 
 import com.filipegeniselli.desafiodev.exception.NotFoundException;
 import com.filipegeniselli.desafiodev.transactions.data.*;
-import jakarta.transaction.Transactional;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -35,7 +34,6 @@ public class CnabParserServiceImpl implements CnabParserService {
     }
 
     @KafkaListener(topics = "${cnabparser.topics.cnabprocessing-topic}", groupId = "cnabparser-api")
-    @Transactional
     public void consume(ConsumerRecord<String, String> payload) {
         CnabProcessStatus status = this.cnabProcessStatusRepository.findById(Integer.valueOf(payload.value()))
                 .orElseThrow(() -> new NotFoundException("Processamento não encontrado"));
@@ -44,28 +42,29 @@ public class CnabParserServiceImpl implements CnabParserService {
         status.setStatus(ProcesssStatus.PROCESSING);
 
         this.cnabProcessStatusRepository.save(status);
-        processCnabList(status.getCnabList());
+        processCnabList(this.cnabRepository.findByCnabProcessStatus_Id(status.getId()));
 
-        if(status.getCnabList().stream().anyMatch(x -> StringUtils.hasText(x.getErrorDescription()))) {
+        status.setStatus(ProcesssStatus.SUCCESS);
+        if(this.cnabRepository.findByCnabProcessStatus_Id(status.getId())
+                .stream()
+                .anyMatch(x -> StringUtils.hasText(x.getErrorDescription()))) {
             status.setStatus(ProcesssStatus.ERROR);
             status.setErrorReason("Erro durante o processamento do arquivo, verifique a(s) linha(s) com problema(s)");
         }
 
-        status.setStatus(ProcesssStatus.SUCCESS);
         status.setEndProcessTime(LocalDateTime.now());
-
         this.cnabProcessStatusRepository.save(status);
     }
 
     @Override
     public void processCnabList(List<Cnab> cnabList) {
-        cnabList.forEach(line -> {
+        cnabList.parallelStream().forEach(line -> {
             Store store = getOrCreateStoreFromCnab(line);
             createTransactionFromCnab(line, store);
         });
     }
 
-    private Store getOrCreateStoreFromCnab(Cnab cnab) {
+    private synchronized Store getOrCreateStoreFromCnab(Cnab cnab) {
         Optional<Store> result = this.storeRepository.findByOwnerNameAndStoreName(cnab.getOwner(), cnab.getStore());
 
         if (result.isPresent()) {
@@ -88,18 +87,18 @@ public class CnabParserServiceImpl implements CnabParserService {
         Optional<LocalDateTime> transactionTime = convertDateTime(cnab.getDate(), cnab.getTime());
 
         if (type.isEmpty()) {
-            cnab.setErrorDescription("Tipo inválido");
+            cnab.appendErrorDescription("Tipo inválido");
             isError = true;
         }
 
         if (transactionTime.isEmpty()) {
-            cnab.setErrorDescription("Data da transação inválida");
+            cnab.appendErrorDescription("Data da transação inválida");
             isError = true;
         }
 
         Optional<BigDecimal> amount = convertAmount(cnab.getAmount(), type);
         if (amount.isEmpty()) {
-            cnab.setErrorDescription("Data da transação inválida");
+            cnab.appendErrorDescription("Data da transação inválida");
             isError = true;
         }
 
@@ -116,6 +115,17 @@ public class CnabParserServiceImpl implements CnabParserService {
                 .cpf(cnab.getCpf())
                 .store(store)
                 .build();
+
+        Optional<Transaction> existingTransaction = this.transactionRepository
+                .findByStore_Id(store.getId())
+                .stream()
+                .filter(x -> x.equals(transaction))
+                .findFirst();
+        if(existingTransaction.isPresent()) {
+            cnab.appendErrorDescription("Já existe uma transação com os mesmos dados para essa loja");
+            this.cnabRepository.save(cnab);
+            return;
+        }
 
         this.transactionRepository.save(transaction);
     }
