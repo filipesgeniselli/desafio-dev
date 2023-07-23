@@ -10,7 +10,14 @@ Implementar uma API Rest e um frontend para realizar upload de um arquivo CNAB, 
 
 # Testes e execução
 
-Para a api foram adicionados testes de integração para uma completa verificação do funcionamento da API, execute os testes utilizando o comando abaixo:
+Para a api foram adicionados testes de integração para uma completa verificação do funcionamento da API, para execução dos testes é necessário ter o keycloak em funcionamento:
+
+```bash
+docker compose build
+docker compose up -d
+```
+
+Execute os testes utilizando o comando abaixo:
 
 ```bash
 cd cnab-api
