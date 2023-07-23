@@ -6,8 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.kafka.test.context.EmbeddedKafka;
-import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.io.File;
@@ -20,7 +19,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
+//@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @EmbeddedKafka(partitions = 1, brokerProperties = {"listeners=PLAINTEXT://localhost:19092", "port=19092"})
 class TransactionControllerTests {
 
@@ -33,12 +32,19 @@ class TransactionControllerTests {
     }
 
     @Test
+    @Transactional
     void uploadCnab_ShouldReturnNoContent() throws IOException {
         File file = TestUtils.getFile("validCNAB.txt");
 
         String accessToken = TestUtils.getAccessToken();
         String uploadLocation = TestUtils.uploadCnabAndWaitFinalStatus(file, accessToken);
-
+        
+        given()
+                .auth().oauth2(accessToken)
+                .get(uploadLocation + "/lines")
+                .then()
+                .statusCode(200);
+                
         given()
                 .auth().oauth2(accessToken)
                 .get(uploadLocation)
@@ -64,7 +70,7 @@ class TransactionControllerTests {
     }
 
     @Test
-    @WithMockUser
+    @Transactional
     void uploadCnabWithLineSmallerThanExpected_ShouldReturnBadRequest() throws IOException {
         File file = TestUtils.getFile("invalidCNAB.txt");
         given()
@@ -77,7 +83,7 @@ class TransactionControllerTests {
     }
 
     @Test
-    @WithMockUser
+    @Transactional
     void uploadCnabWithLineGreaterThanExpected_ShouldReturnBadRequest() throws IOException {
         File file = TestUtils.getFile("invalidCNAB2.txt");
         given()
@@ -90,7 +96,7 @@ class TransactionControllerTests {
     }
 
     @Test
-    @WithMockUser
+    @Transactional
     void uploadDuplicatedCnab_ShouldReturnConflict() throws IOException {
         File file = TestUtils.getFile("duplicatedCNAB.txt");
         String accessToken = TestUtils.getAccessToken();
@@ -106,7 +112,7 @@ class TransactionControllerTests {
     }
 
     @Test
-    @WithMockUser
+    @Transactional
     void uploadEmtptyCnab_ShouldReturnBadRequest() throws IOException {
         File file = TestUtils.getFile("emptyCNAB.txt");
         given()
@@ -119,7 +125,7 @@ class TransactionControllerTests {
     }
 
     @Test
-    @WithMockUser
+    @Transactional
     void uploadCnabWithInvalidLines_ShouldReturnNoContent() throws IOException {
         String accessToken = TestUtils.getAccessToken();
         

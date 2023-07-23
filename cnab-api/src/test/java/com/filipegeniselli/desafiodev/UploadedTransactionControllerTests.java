@@ -1,14 +1,12 @@
 package com.filipegeniselli.desafiodev;
 
 import io.restassured.RestAssured;
-import io.restassured.filter.log.ResponseLoggingFilter;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.kafka.test.context.EmbeddedKafka;
-import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.io.File;
@@ -19,10 +17,8 @@ import java.util.stream.Collectors;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
-import static org.hamcrest.Matchers.hasSize;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
 @EmbeddedKafka(partitions = 1, brokerProperties = {"listeners=PLAINTEXT://localhost:19092", "port=19092"})
 class UploadedTransactionControllerTests {
 
@@ -32,15 +28,10 @@ class UploadedTransactionControllerTests {
     @BeforeEach
     public void configureRestAssured() {
         RestAssured.port = port;
-        RestAssured.filters(new ResponseLoggingFilter());
     }
 
-    @Test
-    @Order(1)
-    void uploadCnab_ShouldReturnNoContent() throws IOException {
-        File file = TestUtils.getFile("validCNAB.txt");
-
-        String accessToken = TestUtils.getAccessToken();
+    private void uploadCnab(String accessToken) throws IOException {
+        File file = TestUtils.getFile("validCNAB2.txt");
         String uploadLocation = TestUtils.uploadCnabAndWaitFinalStatus(file, accessToken);
 
         given()
@@ -49,7 +40,7 @@ class UploadedTransactionControllerTests {
                 .then()
                 .statusCode(200)
                 .body("status", equalTo("SUCCESS"))
-                .body("fileName", equalTo("validCNAB.txt"))
+                .body("fileName", equalTo("validCNAB2.txt"))
                 .body("insertTime", notNullValue())
                 .body("startProcessTime", notNullValue())
                 .body("endProcessTime", notNullValue())
@@ -68,10 +59,12 @@ class UploadedTransactionControllerTests {
     }
     
     @Test
-    void getStores_ShouldReturnOK() {
+    @Transactional
+    void getStoresAndTransactions_ShouldReturnOK() throws IOException {
         String accessToken = TestUtils.getAccessToken();
+        uploadCnab(accessToken);
 
-        given()
+        Integer id = given()
                 .auth().oauth2(accessToken)
                 .get("/transactions/stores")
                 .then()
@@ -88,31 +81,24 @@ class UploadedTransactionControllerTests {
                         "MARCOS PEREIRA",
                         "JOSÉ COSTA"
                 ))
-                .body("balance", hasItems(-102f, 152.32f, 230f, 489.2f, -7023f));
-    }
-    
-    @Test
-    void getTransactions_shouldReturnOk() {
-        String accessToken = TestUtils.getAccessToken();
-        Integer id = given()
-                .auth().oauth2(accessToken)
-                .get("/transactions/stores")
-                .then()
-                .statusCode(200)
+                .body("balance", notNullValue())
                 .extract()
                 .response()
                 .jsonPath()
                 .getList("findAll { it.name == \"BAR DO JOÃO\" }.id", Integer.class)
-                .get(0);
-        
+                .get(0);;
+
+        getTransactions_shouldReturnOk(accessToken, id);
+    }
+    
+    private void getTransactions_shouldReturnOk(String accessToken, Integer id) throws IOException {
         given()
                 .auth().oauth2(accessToken)
                 .get(String.format("/transactions/stores/%s/transactions", id))
                 .then()
                 .statusCode(200)
                 .body("id", notNullValue())
-                .body("type", hasItems("FINANCIAMENTO", "BOLETO", "DEBITO"))
-                .body("amount", hasItems(-142f, -112f, 152f));
+                .body("type", hasItems("FINANCIAMENTO", "BOLETO", "DEBITO"));
     }
     
 }

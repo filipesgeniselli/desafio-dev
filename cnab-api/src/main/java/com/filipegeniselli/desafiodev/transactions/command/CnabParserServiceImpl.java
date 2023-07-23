@@ -3,6 +3,7 @@ package com.filipegeniselli.desafiodev.transactions.command;
 import com.filipegeniselli.desafiodev.exception.NotFoundException;
 import com.filipegeniselli.desafiodev.transactions.data.*;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
@@ -103,6 +104,8 @@ public class CnabParserServiceImpl implements CnabParserService {
         }
 
         if (isError) {
+            LoggerFactory.getLogger(CnabParserServiceImpl.class).error("cpf:%s - card:%s - amount:%s - error: %s".formatted(
+                    cnab.getCpf(), cnab.getCard(), cnab.getAmount(), cnab.getErrorDescription()));
             this.cnabRepository.save(cnab);
             return;
         }

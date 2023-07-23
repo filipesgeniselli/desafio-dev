@@ -23,6 +23,7 @@ public class Cnab {
     private String time;
     private String owner;
     private String store;
+    @Column(length = 500)
     private String errorDescription;
 
     protected Cnab() {
