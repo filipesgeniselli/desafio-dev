@@ -11,6 +11,6 @@ FROM amazoncorretto:17-alpine
 COPY --from=builder /build/target/dependency/BOOT-INF/lib /app/lib
 COPY --from=builder /build/target/dependency/META-INF /app/META-INF
 COPY --from=builder /build/target/dependency/BOOT-INF/classes /app
-ENTRYPOINT ["java", "-Dspring-boot.run.profiles=prod", "-cp", "app:app/lib/*", "com.filipegeniselli.desafiodev.DesafioDevApplication"]
+ENTRYPOINT ["java", "-Dspring.profiles.active=prod", "-cp", "app:app/lib/*", "com.filipegeniselli.desafiodev.DesafioDevApplication"]
 
 

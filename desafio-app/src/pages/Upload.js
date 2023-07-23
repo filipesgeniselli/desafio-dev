@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
+import { useAuth } from 'react-oidc-context';
 import { useNavigate } from 'react-router-dom';
 
 const Upload = () => {
   const [file, setFile] = useState(null);
   const [isSubmitting, setStatus] = useState(() => false);
   const navigate = useNavigate();
+  const auth = useAuth();
 
   const handleFileChange = (event) => {
     const selectedFile = event.target.files[0];
@@ -29,6 +31,9 @@ const Upload = () => {
 
       const response = await fetch(apiUrl, {
         method: 'POST',
+        headers: {
+          Authorization: `Bearer ${auth.user?.access_token}`
+        },
         body: formData,
       });
 

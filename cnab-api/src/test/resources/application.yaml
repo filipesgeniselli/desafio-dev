@@ -25,26 +25,8 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://localhost:8080/realms/desafio
           jwk-set-uri: http://localhost:8080/realms/desafio/protocol/openid-connect/certs
 
 cnabparser:
-  filestorage:
-    location: ./
   topics:
     cnabprocessing-topic: T_CNAB_FILE
----
-spring:
-  config:
-    activate:
-      on-profile:
-        - test-it
-  datasource:
-    url: jdbc:postgresql://localhost:5432/cnabparser-test
-    username: cnabparser
-    password: mysecretpassword
-    driver-class-name: org.postgresql.Driver
-  jpa:
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
-    hibernate:
-      ddl-auto: create-drop

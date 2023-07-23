@@ -24,7 +24,7 @@ const StoreReport = () => {
 
   useEffect(() => {
     fetchTransactionsData();
-  });
+  }, [id]);
 
   return (
     <div className="container">

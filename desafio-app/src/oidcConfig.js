@@ -1,7 +1,7 @@
 const oidcConfig = {
-  redirect_uri: 'http://localhost:3000/callback',
+  redirect_uri: process.env.REACT_APP_OIDC_REDIRECT_URI,
   client_id: 'desafio-app',
-  authority: 'http://localhost:8080/realms/desafio/',
+  authority: process.env.REACT_APP_OIDC_AUTHORITY,
   onSigninCallback: () => {
     window.history.replaceState({}, document.title, window.location.pathname);
   },

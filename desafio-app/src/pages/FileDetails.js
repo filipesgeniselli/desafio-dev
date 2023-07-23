@@ -41,7 +41,7 @@ const FileDetails = () => {
   useEffect(() => {
     fetchFileData();
     fetchFileDetails();
-  })
+  }, [id])
 
   return (
     <div className="container">

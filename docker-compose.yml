@@ -79,6 +79,7 @@ services:
       DB_URL: jdbc:postgresql://postgres:5432/api
       DB_USERNAME: api
       DB_USER_PASSWORD: mysecretpassword
+      SPRING_KAFKA_BOOSTRAP_SERVERS: kafka:9092
     networks:
       - backend
       - data
@@ -89,7 +90,7 @@ services:
       - postgres
       - keycloak
     profiles:
-      - api
+      - app
 
   app:
     ports:
@@ -109,9 +110,7 @@ services:
 
 networks:
   kafka:
-    name: "kafka_network"
   keycloak:
-    name: "keycloak_network"
   backend:
   frontend:
   data:

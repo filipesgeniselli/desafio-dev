@@ -27,7 +27,6 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://localhost:8080/realms/desafio
           jwk-set-uri: http://localhost:8080/realms/desafio/protocol/openid-connect/certs
 server:
   port: 8081
@@ -53,12 +52,12 @@ spring:
   kafka:
     producer:
       bootstrap-servers:
-        - kafka:9092
+        - kafka:29092
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
     consumer:
       bootstrap-servers:
-        - kafka:9092
+        - kafka:29092
       group-id: cnabparser-api
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
@@ -69,7 +68,6 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://keycloak:8080/realms/desafio
           jwk-set-uri: http://keycloak:8080/realms/desafio/protocol/openid-connect/certs
 cnabparser:
   topics:

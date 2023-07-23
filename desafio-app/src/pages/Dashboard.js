@@ -23,7 +23,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchFileData();
-  });
+  }, []);
 
   return (
     <div className="container">

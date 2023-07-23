@@ -23,7 +23,7 @@ const Stores = () => {
 
   useEffect(() => {
     fetchStoresData();
-  });
+  }, []);
 
   return (
     <div className="container">
